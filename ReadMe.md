@@ -18,7 +18,6 @@ cd libnegf
 cmake .. -DCMAKE_INSTALL_PREFIX=../../
 make -j
 ```
-
 Now we can compile the prototype.
 ```
 make
@@ -27,4 +26,10 @@ make test
 
 ## Data Generation
 
-And example python script is included 
+And example python script shows us how to generate the matrices and the
+the ordering.
+```
+pip install PyBigDFT
+# install BigDFT and put it on your path
+python generate.py
+```

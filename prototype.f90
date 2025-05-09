@@ -220,13 +220,13 @@ contains
   logical function in_region(col,row)
     integer, intent(in) :: col, row
     in_region = &
-         (col<=mid .and. row<=mid)        .or. &
-         (col<=lef1 .and. row> lef1-mid) .or. &
-         (row<=lef1 .and. col> lef1-mid) .or. &
-         (row> lef2 .and. row<=rig1 .and. &
-          col> mid-(lef2-mid) .and. col<=mid) .or. &
-         (col> lef2 .and. col<=rig1 .and. &
-          row> mid-(lef2-mid) .and. row<=mid)
+         (col <= mid  .and. row <= mid)        .or. &
+         (col <= lef1 .and. row >  lef1 - mid) .or. &
+         (row <= lef1 .and. col >  lef1 - mid) .or. &
+         (row > lef2  .and. row <= rig1 .and. &
+          col > mid - (lef2 - mid) .and. col <= mid) .or. &
+         (col > lef2  .and. col <= rig1 .and. &
+          row > mid   - (lef2 - mid) .and. row <= mid)
   end function
   !> 
   subroutine extract(ncol, rowpnt, colind, values, want_inside)

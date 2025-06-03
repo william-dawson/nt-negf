@@ -36,7 +36,7 @@ We need some metadata file for understanding the indexing.
 ```
 pip install PyBigDFT
 # install BigDFT and put it on your path
-python generate.py example/sw.xyz example/log-sw.yaml 12 24 36
+python script/generate.py example/sw.xyz example/log-sw.yaml 12 24 36
 ```
 In this case, the first number 12 is the last atom in the contact region,
 24 the last atom in the left region, and 36 the last atom in the right region.

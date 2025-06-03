@@ -11,6 +11,7 @@ program prototype
   use processgridmodule
   use psmatrixalgebramodule
   use psmatrixmodule
+  use smatrixalgebramodule
   use smatrixmodule
   use tripletlistmodule
   use tripletmodule
@@ -41,6 +42,7 @@ program prototype
   type(tripletlist_c) :: tlist
   type(triplet_c) :: trip
   real(ntreal) :: dotv
+  complex(ntcomplex) :: dotc
 
   !! Setup MPI, NTPoly, libNEGF
   call mpi_init_thread(mpi_thread_serialized, prov, ierr)
@@ -52,9 +54,7 @@ program prototype
   call get_command_argument(2, s_file)
   call get_command_argument(3, k_file)
   call get_command_argument(4, idx_file)
-  call get_command_argument(5, temps)
-  read(temps, *) mu
-  call get_command_argument(6, o_file)
+  call get_command_argument(5, o_file)
 
   !! Read in the BigDFT Matrices
   call constructmatrixfrommatrixmarket(H, h_file)
@@ -68,7 +68,7 @@ program prototype
   end if
 
   !! Read in the indexing information
-  call get_order(idx_file, order, mid, lef1, lef2, rig1, rig2)
+  call get_order(idx_file, order, mid, lef1, lef2, rig1, rig2, mu)
   allocate(cblk(2))
   plend(1) = mid
   surfstart(1) = mid + 1
@@ -97,11 +97,19 @@ program prototype
   call convertmatrixtocomplex(H, Hc)
   call convertmatrixtocomplex(S, Sc)
   call convertmatrixtocomplex(K, Kc)
+  call dotmatrix(Kc, Sc, dotv)
+  if (isroot()) then
+      write(*,*) "Trace after sparsity switch", dotv
+  end if
 
   !! Gather locally
   call gathermatrixtoprocess(Hc, Hloc)
   call gathermatrixtoprocess(Sc, Sloc)
   call gathermatrixtoprocess(Kc, Kloc)
+  call dotmatrix(Kloc, Sloc, dotc)
+  if (isroot()) then
+      write(*,*) "Trace after local", dotc
+  end if
 
   if (isroot()) then
       write(*,*) "Setup Done"
@@ -194,13 +202,15 @@ contains
     call set_mpi_bare_comm(pnegf, MPI_COMM_WORLD)
   end subroutine
   !> Read in the file with the ordering.
-  subroutine get_order(idx_file, order, mid, lef1, lef2, rig1, rig2)
+  subroutine get_order(idx_file, order, mid, lef1, lef2, rig1, rig2, mu)
     !> The name of the file containing the indexing information
     character(len=*), intent(in) :: idx_file
     !> The order of indices to permute the matrix to
     integer, dimension(:), allocatable, intent(out) :: order
     !> The last index in each region
     integer, intent(out) :: mid, lef1, lef2, rig1, rig2
+    !> The chemical potential
+    real(ntreal), intent(out) :: mu
     !! local variables
     integer, parameter :: fh = 16
     integer :: ii, length
@@ -213,6 +223,8 @@ contains
     read(fh, *) order
     !! separators
     read(fh, *) mid, lef1, lef2, rig1, rig2
+    !! chemical potential
+    read(fh, *) mu
     close(fh)
 
   end subroutine

@@ -1,7 +1,7 @@
 FC = mpif90
 FCFLAGS = -fopenmp -fcheck=bounds
-INCLUDES = -I./include -I./include/modfiles
-LDFLAGS = -L./lib
+INCLUDES = -I./external/include -I./external/include/modfiles
+LDFLAGS = -L./external/lib
 LDLIBS = -lNTPoly -llapack -lblas -lnegf -lmpifx
 
 MATS = example/data-sw/hamiltonian_sparse.mtx \
@@ -14,7 +14,7 @@ EXEC = driv
 
 all: $(EXEC)
 
-$(EXEC): prototype.f90
+$(EXEC): src/prototype.f90
 	$(FC) $(FCFLAGS) $(INCLUDES) $< -o $@ $(LDFLAGS) $(LDLIBS)
 
 test1: $(EXEC)

@@ -4,10 +4,13 @@ This project attempts to use NTPoly as glue code for integrating libNEGF.
 
 ## Building
 
-First we need to download the NTPoly source code and compile it.
+We have some dependencies which we can install in the external directory.
 ```
-git clone git@github.com:william-dawson/NTPoly.git 
-cd NTPoly/Build
+git submodule update --init --recursive
+```
+Now compile NTPoly.
+```
+cd external/NTPoly/Build
 cmake .. -DCMAKE_INSTALL_PREFIX=../../
 make -j
 make install
@@ -15,7 +18,6 @@ cd ../../
 ```
 And libNEGF
 ```
-git clone git@github.com:libnegf/libnegf.git
 mkdir libnegf/build
 cd libnegf/build 
 cmake .. -DCMAKE_INSTALL_PREFIX=../../

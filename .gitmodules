@@ -1,0 +1,6 @@
+[submodule "external/NTPoly"]
+	path = external/NTPoly
+	url = git@github.com:william-dawson/NTPoly.git
+[submodule "external/libnegf"]
+	path = external/libnegf
+	url = git@github.com:libnegf/libnegf.git

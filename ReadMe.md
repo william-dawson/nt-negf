@@ -10,18 +10,22 @@ git clone git@github.com:william-dawson/NTPoly.git
 cd NTPoly/Build
 cmake .. -DCMAKE_INSTALL_PREFIX=../../
 make -j
+make install
+cd ../../
 ```
 And libNEGF
 ```
 git clone git@github.com:libnegf/libnegf.git
-cd libnegf 
+mkdir libnegf/build
+cd libnegf/build 
 cmake .. -DCMAKE_INSTALL_PREFIX=../../
 make -j
+make install
+cd ../../
 ```
 Now we can compile the prototype.
 ```
 make
-make test
 ```
 
 ## Data Generation

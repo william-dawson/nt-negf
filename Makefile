@@ -4,9 +4,9 @@ INCLUDES = -I./external/include -I./external/include/modfiles
 LDFLAGS = -L./external/lib
 LDLIBS = -lNTPoly -llapack -lblas -lnegf -lmpifx
 
-MATS = example/data-sw/hamiltonian_sparse.mtx \
-       example/data-sw/overlap_sparse.mtx \
-       example/data-sw/density_kernel_sparse.mtx
+MATS = example2/data-sw2/hamiltonian_sparse.mtx \
+       example2/data-sw2/overlap_sparse.mtx \
+       example2/data-sw2/density_kernel_sparse.mtx
 
 EXEC = driv
 

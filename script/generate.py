@@ -45,6 +45,9 @@ if __name__ == "__main__":
     sys["MID:0"] = sum(list(atsys.values())[:central])
     sys["RIG:1"] = sum(list(atsys.values())[left2:right1])
     sys["RIG:2"] = sum(list(atsys.values())[right1:right2])
+    from BigDFT.IO import write_pdb
+    with open("test.pdb", "w") as ofile:
+        write_pdb(sys, ofile)
     sys.cell = atsys.cell
 
     # get the chemical potential from the log

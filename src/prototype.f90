@@ -69,6 +69,7 @@ program prototype
 
   !! Read in the indexing information
   call get_order(idx_file, order, mid, lef1, lef2, rig1, rig2, mu)
+  write(*,*) mid, lef1, lef2, rig1, rig2
   allocate(cblk(2))
   plend(1) = mid
   surfstart(1) = mid + 1
@@ -82,12 +83,13 @@ program prototype
   !! Reorder the matrices
   call constructdefaultpermutation(perm, h%actual_matrix_dimension)
   perm%index_lookup = order + 1
-  do ii = 1, h%actual_matrix_dimension
-     perm%reverse_index_lookup(perm%index_lookup(II)) = II 
-  end do
+  ! do ii = 1, h%actual_matrix_dimension
+  !    perm%reverse_index_lookup(ii) = perm%index_lookup(II)
+  ! end do
   call permutematrix(H, H, perm)
   call permutematrix(S, S, perm)
   call permutematrix(K, K, perm)
+  ! call printmatrix(k)
 
   !! snap to sparsity pattern
   call snapmatrixtosparsitypattern(H, K)
@@ -116,14 +118,15 @@ program prototype
   end if
 
   !! Convert to the CSR convention of libNEGF
-  Hloc%outer_index = Hloc%outer_index + 1
-  Sloc%outer_index = Sloc%outer_index + 1
+  ! write(*,*) Hloc%outer_index
+  ! write(*,*) Hloc%inner_index(Hloc%outer_index(1) + 1:Hloc%outer_index(1 + 1))
 
   !! Convert to libNEGF matrices
   call create_HS(pnegf, 1) ! 1 k-point
   call create_DM(pnegf, 1)
-  call set_h(pnegf, Hloc%rows, Hloc%values, Hloc%inner_index, Hloc%outer_index)
-  call set_s(pnegf, Sloc%rows, Sloc%values, Sloc%inner_index, Sloc%outer_index)
+  call set_h(pnegf, Hloc%rows, Hloc%values, Hloc%inner_index, Hloc%outer_index + 1)
+  ! write(*,*) pnegf%HS(1)%H%colind(1:120)
+  call set_s(pnegf, Sloc%rows, Sloc%values, Sloc%inner_index, Sloc%outer_index + 1)
 
   !! Call the libNEGF solver
   call init_contacts(pnegf, 2)
@@ -132,7 +135,7 @@ program prototype
   params%mu(1:2) = mu
   params%Emin = mu - 0.2
   params%Emax = mu + 0.2
-  params%Estep = 2.d-2 
+  params%Estep = 1.d-3
   params%kbT_dm(1:2) = 1e-3
   params%kbT_t(1:2) = 1e-3
   params%ec = -2.0
@@ -163,11 +166,11 @@ program prototype
   !! Patch back in the libNEGF density update
   call constructtripletlist(tlist)
   if (isroot()) then
-    call extract(pnegf%rho%ncol, pnegf%rho%rowpnt,&
-                 pnegf%rho%colind, pnegf%rho%nzval, .true.)
+    call extract_lnegf(pnegf%rho%ncol, pnegf%rho%rowpnt,&
+                       pnegf%rho%colind, pnegf%rho%nzval)
 
-    call extract(kloc%columns, kloc%outer_index, &
-                 kloc%inner_index, kloc%values, .false.)
+    call extract_ntpoly(kloc%columns, kloc%outer_index, &
+                        kloc%inner_index, kloc%values)
   end if
   call constructemptymatrix(Kc, S)
   call fillmatrixfromtripletlist(Kc, tlist)
@@ -229,29 +232,61 @@ contains
 
   end subroutine
   !> Test if a row / column is in the appropriate region.
-  logical function in_region(col,row)
+  logical function in_region(col, row)
     integer, intent(in) :: col, row
-    in_region = &
-         (col <= mid  .and. row <= mid)        .or. &
-         (col <= lef1 .and. row >  lef1 - mid) .or. &
-         (row <= lef1 .and. col >  lef1 - mid) .or. &
-         (row > lef2  .and. row <= rig1 .and. &
-          col > mid - (lef2 - mid) .and. col <= mid) .or. &
-         (col > lef2  .and. col <= rig1 .and. &
-          row > mid   - (lef2 - mid) .and. row <= mid)
+    in_region = (col <= mid .and. row <= mid) .or. &
+        (col <= lef1 .and. col > mid .and. row <= lef1 - mid) .or. &
+        (row <= lef1 .and. row > mid .and. col <= lef1 - mid) .or. &
+        (col <= rig1 .and. col > lef2 .and.  & 
+         row <= mid .and. row > mid - (rig1 - lef2)) .or. &
+        (row <= rig1 .and. row > lef2 .and.  & 
+         col <= mid .and. col > mid - (rig1 - lef2))
+        ! (row <= rig1 .and. row > lef2 .and. col <= rig1 - lef2)
+    ! in_region = (col <= mid  .and. row <= mid) .or. &
+    !      (col <= lef1 .and. col > mid .and. row < lef1 - mid) .or. &
+    !      (row <= lef1 .and. row > mid .and. col < lef1 - mid) .or. &
+    !      (col <= rig1 .and. col > lef2 .and. row < rig1 - lef2) .or. &
+    !      (row <= rig1 .and. row > lef2 .and. col < rig1 - lef2)
+    ! in_region =  (col <= rig1 .and. col > lef2 .and. row < rig1 - lef2)
+    ! in_region = &
+    !      (col <= mid  .and. row <= mid)        .or. &
+    !      (col <= lef1 .and. row >  lef1 - mid) .or. &
+    !      (row <= lef1 .and. col >  lef1 - mid) .or. &
+    !      (row > lef2  .and. row <= rig1 .and. &
+    !       col > mid - (lef2 - mid) .and. col <= mid) .or. &
+    !      (col > lef2  .and. col <= rig1 .and. &
+    !       row > mid   - (lef2 - mid) .and. row <= mid)
   end function
   !> 
-  subroutine extract(ncol, rowpnt, colind, values, want_inside)
+  subroutine extract_lnegf(ncol, rowpnt, colind, values)
     integer, intent(in)    :: ncol
     integer, intent(in)    :: rowpnt(:), colind(:)
     complex(kind=8), intent(in) :: values(:)
-    logical, intent(in)    :: want_inside
     integer :: jj, kk, row
 
     do jj = 1, ncol
-      do kk = rowpnt(jj)+1, rowpnt(jj+1) - 1
+      do kk = rowpnt(jj), rowpnt(jj+1) - 1
         row = colind(kk)
-        if (in_region(jj, row) .eqv. want_inside) then
+        if (in_region(jj, row) .eqv. .true.) then
+          trip%index_column = jj
+          trip%index_row    = row
+          trip%point_value  = values(kk)
+          call appendtotripletlist(tlist, trip)
+          write(*,*) trip
+        end if
+      end do
+    end do
+  end subroutine
+  subroutine extract_ntpoly(ncol, rowpnt, colind, values)
+    integer, intent(in)    :: ncol
+    integer, intent(in)    :: rowpnt(:), colind(:)
+    complex(kind=8), intent(in) :: values(:)
+    integer :: jj, kk, row
+
+    do jj = 1, ncol
+      do kk = rowpnt(jj)+1, rowpnt(jj+1)
+        row = colind(kk)
+        if (in_region(jj, row) .eqv. .false.) then
           trip%index_column = jj
           trip%index_row    = row
           trip%point_value  = values(kk)

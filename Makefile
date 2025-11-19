@@ -4,9 +4,10 @@ INCLUDES = -I./external/include -I./external/include/modfiles
 LDFLAGS = -L./external/lib
 LDLIBS = -lNTPoly -llapack -lblas -lnegf -lmpifx
 
-MATS = example2/data-sw2/hamiltonian_sparse.mtx \
-       example2/data-sw2/overlap_sparse.mtx \
-       example2/data-sw2/density_kernel_sparse.mtx
+MATS = example/data-sw/hamiltonian_sparse.mtx \
+       example/data-sw/overlap_sparse.mtx \
+       example/data-sw/density_kernel_sparse.mtx \
+       example/data-sw/order.txt
 
 EXEC = driv
 
@@ -18,10 +19,10 @@ $(EXEC): src/prototype.f90
 	$(FC) $(FCFLAGS) $(INCLUDES) $< -o $@ $(LDFLAGS) $(LDLIBS)
 
 test1: $(EXEC)
-	mpirun -np 1 ./$< $(MATS) order.txt out.mtx
+	mpirun -np 1 ./$< $(MATS) out.mtx
 
 test2: $(EXEC)
-	mpirun -np 2 ./$< $(MATS) order.txt out.mtx
+	mpirun -np 2 ./$< $(MATS) out.mtx
 
 clean:
 	rm -f $(EXEC)

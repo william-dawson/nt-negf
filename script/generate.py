@@ -1,17 +1,21 @@
 """
-Basically, this will write a file that is input for our libNEGF driver. 
+Basically, this will write a file that is input for our libNEGF driver.
 It includes information like the chemical potential, the indices of the
 different regions, etc.
 
 Usage
 """
+
+from os.path import join
 from sys import argv
-from BigDFT.IO import read_xyz, write_pdb
-from BigDFT.Systems import System
+
 from BigDFT.Fragments import Fragment
+from BigDFT.IO import read_xyz, write_pdb
 from BigDFT.Logfiles import Logfile
 from BigDFT.PostProcessing import BigDFTool
+from BigDFT.Systems import System
 from common import NEGFInterop as negf
+
 
 def get_mu(log):
     vals = []
@@ -25,6 +29,7 @@ def get_mu(log):
             summary = opt["Kernel update"]["Kernel calculation"][-1]["summary"]
             vals.append(summary["eF"])
     return vals
+
 
 if __name__ == "__main__":
     # Process the command line arguments
@@ -46,6 +51,7 @@ if __name__ == "__main__":
     sys["RIG:1"] = sum(list(atsys.values())[left2:right1])
     sys["RIG:2"] = sum(list(atsys.values())[right1:right2])
     from BigDFT.IO import write_pdb
+
     with open("test.pdb", "w") as ofile:
         write_pdb(sys, ofile)
     sys.cell = atsys.cell
@@ -60,7 +66,7 @@ if __name__ == "__main__":
     lengths = [len(idx["MID:0"])]
     for key in ["LEF:1", "LEF:2", "RIG:1", "RIG:2"]:
         lengths.append(lengths[-1] + len(idx[key]))
-    with open(f"order.txt", "w") as ofile:
+    with open(join(log.srcdir, log.data_directory, "order.txt"), "w") as ofile:
         ofile.write(str(len(order)) + "\n")
         ofile.write(" ".join([str(x) for x in order]) + "\n")
         ofile.write(" ".join([str(x) for x in lengths]) + "\n")

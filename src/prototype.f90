@@ -76,13 +76,6 @@ program prototype
   if (isroot()) then
     write(*,*) "DFT chemical potential:", mu, "Ha"
   end if
-  !! Adjust mu for open NEGF system to conserve charge
-  !! The chemical potential shifts by ~+0.01 Ha when contacts are added
-  mu_initial = mu + 0.01d0
-  mu = mu_initial
-  if (isroot()) then
-    write(*,*) "Initial mu for NEGF:", mu, "Ha"
-  end if
 
   allocate(cblk(2))
   plend(1) = mid

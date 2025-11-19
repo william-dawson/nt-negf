@@ -1,5 +1,5 @@
 FC = mpif90
-FCFLAGS = -fopenmp -fcheck=bounds
+FCFLAGS = -fopenmp -fcheck=all -fbacktrace -g
 INCLUDES = -I./external/include -I./external/include/modfiles
 LDFLAGS = -L./external/lib
 LDLIBS = -lNTPoly -llapack -lblas -lnegf -lmpifx
